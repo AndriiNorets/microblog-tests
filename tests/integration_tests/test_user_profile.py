@@ -11,9 +11,6 @@ def user2(app):
         return u
 
 def test_view_own_profile(client, user):
-    """
-    Проверяет, что пользователь видит опцию 'Edit Profile' на своей странице.
-    """
     client.post('/auth/login', data={'username': user.username, 'password': 'password'})
     response = client.get(f'/user/{user.username}')
     assert response.status_code == 200
