@@ -14,8 +14,6 @@ from app import db
 BASE_URL = "http://127.0.0.1:5001"  
 TIMEOUT = 5
 
-# --- ВСЕ ОБЩИЕ ФИКСТУРЫ ТЕПЕРЬ ЗДЕСЬ ---
-
 @pytest.fixture(scope='function')
 def live_server(app):
     server = make_server("127.0.0.1", 5001, app)
@@ -29,6 +27,7 @@ def driver():
     chrome_options = Options()
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--window-size=1920,1080")
     driver = webdriver.Chrome(options=chrome_options)
     driver.set_page_load_timeout(30)
     yield driver
@@ -38,22 +37,42 @@ def driver():
 def setup_database(app):
     with app.app_context():
         test_password = "TestPassword123!"
+
         user1 = User(username='testuser1', email='user1@gmail.com')
         user1.set_password(test_password)
+        
         user2 = User(username='testuser2', email='user2@gmail.com')
         user2.set_password(test_password)
+
         db.session.add_all([user1, user2])
         db.session.commit()
+        
         user1.follow(user2)
+        
         post = Post(body="This is a post by user2.", author=user2)
         post1 = Post(body="this post is about the python programming language", author=user1)
         post2 = Post(body="a second post, this one is about java", author=user2)
         post3 = Post(body="another developer post, also about python", author=user2)
+        
         db.session.add(post)
         db.session.commit()
         yield user1, user2
 
-# --- ВСЕ ОБЩИЕ ХЕЛПЕРЫ ТЕПЕРЬ ЗДЕСЬ ---
+@pytest.fixture(scope='function')
+def setup_database_following(app):
+    with app.app_context():
+        test_password = "TestPassword123!"
+
+        user1 = User(username='testuser1', email='user1@gmail.com')
+        user1.set_password(test_password)
+
+        user2 = User(username='testuser2', email='user2@gmail.com')
+        user2.set_password(test_password)
+
+        db.session.add_all([user1, user2])
+        db.session.commit()
+        
+        yield user1, user2
 
 def login_user(driver, username, password):
     driver.get(f"{BASE_URL}/auth/login")

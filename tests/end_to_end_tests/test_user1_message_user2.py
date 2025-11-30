@@ -12,27 +12,16 @@ def unique_user(base_name="user"):
 def register_user(driver, username, email, password):
     driver.get(f"{BASE_URL}/auth/register")
     wait = WebDriverWait(driver, TIMEOUT)
+    
     wait.until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(username)
+    
     driver.find_element(By.NAME, "email").send_keys(email)
     driver.find_element(By.NAME, "password").send_keys(password)
     driver.find_element(By.NAME, "password2").send_keys(password)
     driver.find_element(By.NAME, "submit").click()
     
-    try:
-        wait.until(EC.url_contains('/auth/login'))
-    except TimeoutException as exc:
-        ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-        screenshot = f"registration_failed_{username}_{ts}.png"
-        htmlfile = f"registration_failed_{username}_{ts}.html"
-
-        try:
-            driver.save_screenshot(screenshot)
-            with open(htmlfile, 'w', encoding='utf-8') as f:
-                f.write(driver.page_source)
-        except Exception:
-            pass
-
-        raise AssertionError(f"Registration failed for user '{username}'. Did not redirect to login. Saved {screenshot} and {htmlfile}") from exc
+    wait.until(EC.url_contains('/auth/login'))
+        
 
 def check_inbox(driver, expected_sender, expected_message):
     wait = WebDriverWait(driver, TIMEOUT)
